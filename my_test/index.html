@@ -1,0 +1,120 @@
+<!-- 
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lazy Loading Product Images with Loader</title>
+    <style>
+        /* Create a flex container for product cards */
+        .product-container {
+            width: 750px;
+            display: flex;
+            flex-wrap: wrap; /* Allow cards to wrap to the next row */
+            justify-content: space-between; /* Distribute cards evenly within the viewport */
+            padding: 20px; /* Add some spacing around the container */
+            margin: 0 auto;
+        }
+
+        /* Add some simple styling for the product cards */
+        .product-card {
+            border: 1px solid #ccc;
+            margin: 10px;
+            padding: 10px;
+            width: 300px;
+            height: 300px;
+            box-shadow: 2px 2px 5px #aaa;
+            overflow: hidden; /* Ensure images don't exceed card dimensions */
+            position: relative; /* Required for the loader positioning */
+        }
+
+        /* Style for the product image */
+        .product-image {
+            max-width: 100%; /* Scale down to fit the width of the card */
+            max-height: 100%; /* Scale down to fit the height of the card */
+            display: block; /* Remove extra spacing below inline images */
+            margin: 0 auto; /* Center the image horizontally */
+            
+        }
+
+        /* Style for the loader */
+        .loader {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+            z-index: 1; /* Ensure loader is above images */
+        }
+    </style>
+</head>
+<body>
+    <div class="product-container" id="app"></div>
+
+    <script>
+        const app = document.getElementById('app');
+
+        // Fetch random product images from the Unsplash API
+        //const accessKey = 'YOUR_UNSPLASH_ACCESS_KEY'; // Replace with your own Unsplash API access key
+        //const count = 10; // Number of images to fetch
+
+        fetch(`https://api.unsplash.com/photos/random?count=100&client_id=SNXZXMkNhr-FNod65TTeWRZUtNgttmst7aR5EeqNCtY`)
+            .then(response => response.json())
+            .then(images => {
+                images.forEach(image => {
+                    const card = document.createElement('div');
+                    card.classList.add('product-card');
+
+                    // Create a loader element
+                    // const loader = document.createElement('div');
+                    // loader.classList.add('loader');
+                    // loader.textContent = 'Loading the image...';
+
+                    // Create an image element with a placeholder
+                    const imageElement = document.createElement('img');
+                    imageElement.classList.add('product-image'); // Apply styling to fit into the card
+                    imageElement.setAttribute('data-src', image.urls.regular); // Set data-src for lazy loading
+                    imageElement.setAttribute('alt', 'Product Image');
+
+                    // Append the image element to the card
+                   // card.appendChild(loader); // Add the loader first
+                    card.appendChild(imageElement);
+
+                    // Append the card to the product container
+                    app.appendChild(card);
+                });
+
+                // Lazy load images when they come into the viewport
+                const lazyImages = document.querySelectorAll('.product-image');
+                const options = {
+                    root: null,
+                    rootMargin: '0px',
+                    threshold: 0.1
+                };
+
+                const lazyLoad = (entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const lazyImage = entry.target;
+                            lazyImage.src = lazyImage.getAttribute('data-src');
+                            lazyImage.classList.remove('product-image'); // Remove class to prevent further scaling
+                            observer.unobserve(lazyImage);
+                        }
+                    });
+                };
+
+                const imageObserver = new IntersectionObserver(lazyLoad, options);
+                lazyImages.forEach(image => imageObserver.observe(image));
+            })
+            .catch(error => {
+                console.error('Error fetching images:', error);
+            });
+    </script>
+</body>
+</html>  -->

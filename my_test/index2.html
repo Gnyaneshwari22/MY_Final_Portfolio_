@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lazy Loading Product Images with Infinite Scroll</title>
+    <style>
+        /* Add some simple styling for the product cards */
+        .product-container {
+            width: 750px;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-between; /* Adjust as needed */
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .product-card {
+
+            border: 1px solid #ccc;
+            margin: 10px;
+            padding: 10px;
+            width: 300px;
+            height: 300px;
+            box-shadow: 2px 2px 5px #aaa;
+            overflow: hidden; /* Ensure images don't exceed card dimensions */
+            position: relative; /* Required for the loader positioning */
+        }
+
+        /* Style for the product image */
+        .product-image {
+            max-width: 100%; /* Scale down to fit the width of the card */
+            max-height: 100%; /* Scale down to fit the height of the card */
+            display: block; /* Remove extra spacing below inline images */
+            margin: 0 auto; /* Center the image horizontally */
+        }
+
+        /* Style for the loader */
+        .loader {
+            display: none; /* Initially hide the loader */
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+            z-index: 5; /* Ensure loader is above images */
+            width:50px;
+                height:50px;
+                border-radius:50%;
+                border:8px solid;
+                border-color:#766DF4 #0000;
+                animation:s1 1s infinite;
+         }
+         @keyframes s1 {to{transform: rotate(.5turn)}}
+
+         h1{
+            text-align: center;
+            background-color: #766DF4; 
+         }
+        
+    </style>
+</head>
+<body>
+    <h1>Lazy Loading Implementation</h1>
+    <div class="loader" id="loader">Loading...</div>
+    <div class="product-container" id="app"></div>
+
+    <script>
+        const app = document.getElementById('app');
+        const loader = document.getElementById('loader');
+        let page = 1;
+
+        const lazyLoad = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const lazyImage = entry.target;
+                    const imageUrl = lazyImage.getAttribute('data-src');
+
+                    // Set the actual image URL to load
+                    lazyImage.src = imageUrl;
+
+                    // Optional: Remove the 'product-image' class to prevent further styling
+                    lazyImage.classList.remove('product-image');
+
+                    // Stop observing this element since it has been loaded
+                    observer.unobserve(lazyImage);
+                }
+            });
+        };
+
+        const options = {
+            root: null, // Use the viewport as the root
+            rootMargin: '0px', // No additional margin
+            threshold: 0.1, // Trigger when at least 10% of the element is visible
+        };
+
+        const imageObserver = new IntersectionObserver(lazyLoad, options);
+
+        // Function to create product cards
+        const createProductCard = (imageUrl) => {
+            const card = document.createElement('div');
+            card.classList.add('product-card');
+
+            // Create an image element with a placeholder
+            const imageElement = document.createElement('img');
+            imageElement.classList.add('product-image'); // Apply styling to fit into the card
+            imageElement.setAttribute('data-src', imageUrl); // Set data-src for lazy loading
+            imageElement.setAttribute('alt', 'Product Image');
+
+            // Append elements to the card
+            card.appendChild(imageElement);
+
+            // Observe the image element for lazy loading
+            imageObserver.observe(imageElement);
+
+            return card;
+        };
+
+        // Function to load more products when scrolling
+        const loadMoreProducts = () => {
+            // Simulate loading more products (you can replace this with actual data fetching)
+            const accessKey = 'YOUR_UNSPLASH_ACCESS_KEY'; // Replace with your Unsplash API access key
+            const count = 10; // Number of images to fetch
+
+            fetch(`https://api.unsplash.com/photos/random?count=30&client_id=SNXZXMkNhr-FNod65TTeWRZUtNgttmst7aR5EeqNCtY`)
+                .then(response => response.json())
+                .then(images => {
+                    images.forEach(image => {
+                        const card = createProductCard(image.urls.regular);
+                        app.appendChild(card);
+                    });
+                    loader.style.display = 'none'; // Hide the loader after loading new products
+                    page++;
+                })
+                .catch(error => {
+                    console.error('Error fetching images:', error);
+                });
+        };
+
+        // Add an initial set of product cards
+        loadMoreProducts();
+
+        // Implement lazy loading by listening to the scroll event
+        window.addEventListener('scroll', () => {
+            if (window.scrollY === 0) {
+                // If the user scrolls up to the top, load more products and show the loader
+                loader.style.display = 'block';
+                loadMoreProducts();
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+<!-- https://chat.openai.com/share/635b9486-6717-4e41-a625-ecfb85985fc7 -->
